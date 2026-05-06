@@ -166,7 +166,7 @@ return (
 <div style={{ textAlign: ‘center’, marginBottom: 40 }}>
 <div style={{ fontSize: 48, marginBottom: 12 }}>🗺️</div>
 <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 2, color: T.blue, textTransform: ‘uppercase’, marginBottom: 6 }}>YOUR WISHLIST</div>
-<div style={{ fontSize: 36, fontWeight: 800, color: T.text, fontFamily: “‘Google Sans’, Roboto, sans-serif”, letterSpacing: -1 }}>WanderList</div>
+<div style={{ fontSize: 36, fontWeight: 800, color: T.text, fontFamily: “‘Google Sans’, Roboto, sans-serif”, letterSpacing: -1 }}>Map Out</div>
 <div style={{ fontSize: 15, color: T.muted, marginTop: 8 }}>Save and discover places together</div>
 </div>
 {mode === ‘choose’ && (
@@ -280,7 +280,6 @@ showToast(‘Updated!’)
 } else {
 await supabase.from(‘places’).insert(payload)
 showToast(‘Place added!’)
-// Email notification for new place added
 fetch(’/api/notify’, {
 method: ‘POST’,
 headers: { ‘Content-Type’: ‘application/json’ },
@@ -309,6 +308,8 @@ setEditingId(place.id); setPrevView(from || ‘list’); setView(‘add’)
 
 async function updatePlace(id, updates) {
 await supabase.from(‘places’).update(updates).eq(‘id’, id)
+// Update local state immediately so UI reflects change without reload
+setPlaces(prev => prev.map(p => p.id === id ? { …p, …updates } : p))
 setSelectedPlace(prev => prev ? { …prev, …updates } : prev)
 if (updates.partner_status === “We’re In”) {
 const place = places.find(p => p.id === id)
@@ -328,7 +329,6 @@ approvedBy: userName
 }
 }
 
-// Approved = We’re In but NOT completed
 const approved    = places.filter(p => p.partner_status === “We’re In” && p.trip_status !== ‘Completed’)
 const completed   = places.filter(p => p.trip_status === ‘Completed’)
 const reviewQueue = places.filter(p => p.partner_status === ‘Undecided’)
@@ -447,7 +447,7 @@ return (
 <div style={{ display: ‘flex’, alignItems: ‘center’, justifyContent: ‘space-between’, marginBottom: 16 }}>
 <div>
 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: T.blue, textTransform: ‘uppercase’, marginBottom: 2 }}>YOUR WISHLIST</div>
-<div style={{ fontSize: 26, fontWeight: 800, color: T.text, fontFamily: “‘Google Sans’, Roboto, sans-serif”, letterSpacing: -0.5 }}>WanderList</div>
+<div style={{ fontSize: 26, fontWeight: 800, color: T.text, fontFamily: “‘Google Sans’, Roboto, sans-serif”, letterSpacing: -0.5 }}>Map Out</div>
 </div>
 <div style={{ display: ‘flex’, gap: 8, alignItems: ‘center’ }}>
 <button onClick={() => setShowCode(!showCode)} style={{ …btnGhost, padding: ‘7px 12px’, fontSize: 12 }}>🔑 Code</button>
@@ -482,7 +482,7 @@ style={{ …btnPrimary, padding: ‘7px 12px’, fontSize: 12, borderRadius: 16 
 ))}
 </div>
 <div style={{ display: ‘flex’, overflowX: ‘auto’, scrollbarWidth: ‘none’ }}>
-{[[‘list’,“All Places”],[‘yeslist’,“We’re In”],[‘completed’,‘Completed’],[‘review’, reviewQueue.length > 0 ? `Review (${reviewQueue.length})` : ‘Review’]].map(([tab, label]) => (
+{[[‘list’,‘All Places’],[‘yeslist’,“We’re In”],[‘completed’,‘Completed’],[‘review’, reviewQueue.length > 0 ? `Review (${reviewQueue.length})` : ‘Review’]].map(([tab, label]) => (
 <button key={tab} onClick={() => setView(tab)} style={{
 flexShrink: 0, padding: ‘10px 14px’, border: ‘none’, background: ‘none’, cursor: ‘pointer’,
 fontSize: 13, fontWeight: 600, fontFamily: ‘Roboto, sans-serif’,
@@ -705,7 +705,7 @@ style={{ padding: ‘7px 14px’, borderRadius: 20, fontSize: 13, fontWeight: 50
 </div>
 <div style={{ display: ‘flex’, gap: 10, marginTop: 8, marginBottom: 32 }}>
 <button onClick={() => { setForm(lf); savePlace() }} disabled={loading} style={{ …btnPrimary, opacity: loading ? 0.7 : 1 }}>
-{loading ? ‘Saving…’ : editingId ? ‘Save Changes’ : ‘Add to WanderList’}
+{loading ? ‘Saving…’ : editingId ? ‘Save Changes’ : ‘Add to Map Out’}
 </button>
 {editingId && <button onClick={() => deletePlace(editingId)} style={{ …btnDanger, width: ‘auto’, marginBottom: 0 }}>Delete</button>}
 </div>
